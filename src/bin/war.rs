@@ -159,6 +159,7 @@ use super::*;
         let writer = Vec::new();
         let mut table = Table::new_unit_test(rng, reader, writer);
         assert_eq!(table.initialize().unwrap(), 3);
+        assert_eq!(String::from_utf8(table.writer).unwrap(), "Lets Play WAR!\n")
     }
 
    
