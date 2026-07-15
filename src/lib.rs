@@ -1,5 +1,4 @@
 use std::fmt;
-use rand::RngExt;
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub enum CardValue {
@@ -99,7 +98,7 @@ impl fmt::Display for Card {
 
 #[derive(Default, Clone, PartialEq, Debug)]
 pub struct Deck {
-    cards: Vec<Card>,
+    pub cards: Vec<Card>,
 }
 
 impl Deck {
@@ -117,13 +116,8 @@ impl Deck {
         }
     }
 
-    pub fn shuffle(&mut self){
-        let mut rng = rand::rng();
-        Deck::shuffle_rng(self, &mut rng);
-    }
-
-    fn shuffle_rng<R: rand::Rng>(&mut self, rng: &mut R) {
-        //get a random number generator 
+    pub fn shuffle<R: rand::RngExt>(&mut self, rng: &mut R){
+        //get a random number 
         //iterate over cards in reverse, starting at the end
         for index in 0..self.cards.len(){
             //pick a random index in the range [0..card]
@@ -133,28 +127,28 @@ impl Deck {
         }
     }
 
-    fn draw_n(&mut self, count: usize) -> Result<Vec<Card>, String>{
-        if count > self.cards.len(){
-            return Err(format!("Count({}) is larger than deck({})", count, self.cards.len()))
-        }
-        let deal = self.cards.drain(0..count).collect();
-        Ok(deal)
-    }
+    // pub fn draw_n(&mut self, count: usize) -> Result<Vec<Card>, String>{
+    //     if count > self.cards.len(){
+    //         return Err(format!("Count({}) is larger than deck({})", count, self.cards.len()))
+    //     }
+    //     let deal = self.cards.drain(0..count).collect();
+    //     Ok(deal)
+    // }
 
-    fn draw(&mut self) -> Result<Card, String>{
-        if self.cards.len() < 1 {
-            return Err(format!("Empty Deck"))
-        }
-        Ok(self.cards.remove(0))
-    }
+    // pub fn draw(&mut self) -> Result<Card, String>{
+    //     if self.cards.len() < 1 {
+    //         return Err(format!("Empty Deck"))
+    //     }
+    //     Ok(self.cards.remove(0))
+    // }
 
-    fn push_bottom(&mut self, card: Card){
-        self.cards.push(card);
-    }
+    // pub fn push_bottom(&mut self, card: Card){
+    //     self.cards.push(card);
+    // }
 
-    fn push_top(&mut self, card: Card){
-        self.cards.insert(0, card);
-    }
+    // pub fn push_top(&mut self, card: Card){
+    //     self.cards.insert(0, card);
+    // }
 
 }
 
@@ -173,58 +167,70 @@ mod tests {
     use rand::{SeedableRng};
 
     #[test]
+    fn test_deck_new(){
+        let deck = Deck::new();
+        assert_eq!(deck.cards[0], Card{suit: Suit::Spades, value: CardValue::Ace});
+        assert_eq!(deck.cards[15], Card{suit: Suit::Hearts, value: CardValue::Queen});
+        assert_eq!(deck.cards[45], Card{suit: Suit::Clubs, value: CardValue::Eight});
+        assert_eq!(deck.cards[51], Card{suit: Suit::Clubs, value: CardValue::Two});
+
+        let deck2 = Deck::default();
+        assert_eq!(deck2.cards.len(), 0)
+    }
+
+    #[test]
     fn test_shuffle() {
+        let mut rng = rand::rngs::StdRng::seed_from_u64(42);
         let deck = Deck::new();
         let mut deck2 = deck.clone();
-        let mut rng = rand::rngs::StdRng::seed_from_u64(42);
-        Deck::shuffle_rng(&mut deck2, &mut rng);
+        Deck::shuffle(&mut deck2, &mut rng);
         assert_eq!(deck.cards.len(), deck2.cards.len());
         let diff = deck.cards.iter().zip(deck2.cards.iter()).any(|(card1, card2)| *card1 != *card2);
         assert!(diff, "Shuffled deck is in exact same order as before!");
     }
 
-    #[test]
-    fn test_draw_n(){
-        let mut deck = Deck::new();
-        let drawn = vec![
-            Card{value: CardValue::Ace, suit: Suit::Spades},
-            Card{value: CardValue::King, suit: Suit::Spades},
-            Card{value: CardValue::Queen, suit: Suit::Spades},
-            Card{value: CardValue::Jack, suit: Suit::Spades} 
-        ];
-        assert_eq!(deck.draw_n(4).unwrap(), drawn);
-    }
+    //#[test]
+    // fn test_draw_n(){
+    //     let mut deck = Deck::new();
+    //     let drawn = vec![
+    //         Card{value: CardValue::Ace, suit: Suit::Spades},
+    //         Card{value: CardValue::King, suit: Suit::Spades},
+    //         Card{value: CardValue::Queen, suit: Suit::Spades},
+    //         Card{value: CardValue::Jack, suit: Suit::Spades} 
+    //     ];
+    //     assert_eq!(deck.draw_n(4).unwrap(), drawn);
+    // }
 
-    #[test]
-    fn test_draw(){
-        let mut deck = Deck::new();
-        let drawn = Card{value: CardValue::Ace, suit: Suit::Spades};
-        assert_eq!(deck.draw().unwrap(), drawn);
-    }
+    //#[test]
+    // fn test_draw(){
+    //     let mut deck = Deck::new();
+    //     let drawn = Card{value: CardValue::Ace, suit: Suit::Spades};
+    //     assert_eq!(deck.draw().unwrap(), drawn);
+    // }
 
-    #[test]
-    fn test_default() {
-        let deck = Deck::default();
-        assert_eq!(deck.cards.len(), 0)
-    }
+    // #[test]
+    // fn test_default() {
+    //     let deck = Deck::default();
+    //     assert_eq!(deck.cards.len(), 0)
+    // }
 
-    #[test]
-    fn test_push_bottom() {
-        let mut deck = Deck::default();
-        let card = Card{value: CardValue::Ace, suit: Suit::Spades};
-        let card2 = card.clone();
-        deck.push_bottom(card2);
-        assert_eq!(deck.cards.len(), 1);
-        assert_eq!(deck.cards[0], card);
-    }
+    // #[test]
+    // fn test_push_bottom() {
+    //     let mut deck = Deck::default();
+    //     let card = Card{value: CardValue::Ace, suit: Suit::Spades};
+    //     let card2 = card.clone();
+    //     deck.push_bottom(card2);
+    //     assert_eq!(deck.cards.len(), 1);
+    //     assert_eq!(deck.cards[0], card);
+    // }
 
-    #[test]
-    fn test_push_top(){
-        let mut deck = Deck::new();
-        let card = Card {value: CardValue::Ace, suit: Suit::Hearts};
-        let card2 = card.clone();
-        deck.push_top(card);
-        assert_eq!(deck.cards.len(), 53);
-        assert_eq!(deck.cards[0], card2);
-    }
+    // #[test]
+    // fn test_push_top(){
+    //     let mut deck = Deck::new();
+    //     let card = Card {value: CardValue::Ace, suit: Suit::Hearts};
+    //     let card2 = card.clone();
+    //     deck.push_top(card);
+    //     assert_eq!(deck.cards.len(), 53);
+    //     assert_eq!(deck.cards[0], card2);
+    // }
 }
