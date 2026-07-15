@@ -65,9 +65,9 @@ impl <N: rand::RngExt, R: BufRead, W: Write> Table<N, R, W> {
 
     fn deal(&mut self){
         let mut i = 0;
-        let player_count = self.dealer.cards.len();
+        let player_count = self.players.len();
         while let Some(card) = self.dealer.cards.pop(){
-            self.players[(i + 1) % player_count].cards.push(card);
+            self.players[i % player_count].cards.push(card);
             i += 1;
         }
     }
@@ -160,6 +160,23 @@ use super::*;
         let mut table = Table::new_unit_test(rng, reader, writer);
         assert_eq!(table.initialize().unwrap(), 3);
         assert_eq!(String::from_utf8(table.writer).unwrap(), "Lets Play WAR!\n")
+    }
+
+    #[test]
+    fn test_deal(){
+        let rng = rand::rngs::StdRng::seed_from_u64(42);
+        let input = b"\n";
+        let reader = &input[..];
+        let writer = Vec::new();
+        let mut table = Table::new_unit_test(rng, reader, writer);
+
+        table.set_player_count(3);
+        table.deal();
+
+        assert_eq!(table.players[0].cards.len(), 18);
+        assert_eq!(table.players[1].cards.len(), 17);
+        assert_eq!(table.players[2].cards.len(), 17);
+        assert_eq!(table.dealer.cards.len(), 0);
     }
 
    
