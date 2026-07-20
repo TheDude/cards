@@ -1,6 +1,6 @@
 use std::io::{ self, BufRead, BufReader, Stdin, Stdout, Write};
 
-use deck::{self, Deck};
+use deck::{self, Deck, Card, CardValue, Suit};
 use rand;
 
 struct Table<N: rand::RngExt = rand::rngs::StdRng, R: BufRead = BufReader<Stdin>, W: Write = Stdout> {
@@ -58,6 +58,61 @@ impl <N: rand::RngExt, R: BufRead, W: Write> Table<N, R, W> {
         Ok(player_count)
     }
 
+    fn game_loop(&mut self){
+        //check for empty decks. If only one player has all the cards, he is the winner.
+        //deal 1 card from all players. Highest card wins all cards which are added to the bottom of the deck
+        //display cards counts, cards in battle, and waith for enter key
+        //highest card is winner, if there is more than one highest card, do a WAR.
+        //
+
+        while let None = self.check_win() {
+            //put all the battle cards into a working vec.
+            let battle_cards = self.play_cards();
+            let winners = self.find_winners(battle_cards);
+        }
+    }
+
+    fn play_cards(&mut self) -> Vec<(usize, Card)>{
+        let mut battle_cards: Vec<(usize, Card)> = Vec::new();
+        for (i, player) in self.players.iter_mut().enumerate() {
+            if let Some(card) = player.cards.pop(){
+                battle_cards.push((i, card));
+            }
+        }
+        battle_cards
+    }
+
+    fn find_winners(&mut self, battle_cards: Vec<(usize, Card)>) -> Vec<usize>{
+        //find the winning player ids
+        let mut winners: Vec<usize> = Vec::new();
+        winners = battle_cards.iter().fold(winners, |mut acc, x| {
+            match acc.first(){
+                None => {
+                    acc.push(x.0);
+                    acc
+                },
+                Some(card) if card < &x.0 => {
+                    acc.clear();
+                    acc.push(x.0);
+                    acc
+                },
+                _ => {
+                    acc
+                }
+            }
+        });
+        winners
+    }
+
+    fn check_win(&self) -> Option<usize>{
+        let non_empty: Vec<usize> = self.players.iter().enumerate().filter(|(_, p)| !p.cards.is_empty()).map(|(idx, _)| idx).collect();
+
+        match non_empty.as_slice() {
+            [idx] => Some(*idx),
+            _ => None,
+        }
+    }
+
     fn write_flush(&mut self, msg: &str) -> std::io::Result<()>{
         writeln!(self.writer, "{}", msg)?; //early return std::io::Result<()>
         self.writer.flush()     //returns std::io::Result<()>
@@ -75,11 +130,12 @@ impl <N: rand::RngExt, R: BufRead, W: Write> Table<N, R, W> {
 
 
 //game initialization
+    //INIT:
     //create 2 default decks for player hands
     //create 52 card deck for deal
     //deal() cards from deck, consuming the main deck.
     
-    //game loop
+    //GAME LOOP:
     //check if either player deck is empty, if either is empty, they are the loser and run game_over()
     //deal() 1 card from player 1, then player 2. Always draw from top.
     //display cards, deck count for each player, wait for enter key. 
@@ -87,7 +143,7 @@ impl <N: rand::RngExt, R: BufRead, W: Write> Table<N, R, W> {
     //if cards are equal do a war()
     //else, determine who had the higher card and add both cards to the bottom of their deck()
 
-    //war:
+    //WAR: 
     //deal 4 cards from each player deck. 
     //display 3 placeholder cards + 4th card from each player, wait for enter key
     //display all 4 cards from each player
@@ -105,7 +161,7 @@ fn main(){
     let player_count: usize = loop {
         match table.initialize() {
             Ok(val) => { break val }
-            Err(e) => { println!("Invalid Value: {}", e) } //try again
+            Err(e) => { println!("Invalid value: CardValue::{}", e) } //try again
         };
     };
 
@@ -177,7 +233,44 @@ use super::*;
         assert_eq!(table.players[1].cards.len(), 17);
         assert_eq!(table.players[2].cards.len(), 17);
         assert_eq!(table.dealer.cards.len(), 0);
+
+        let correct_players = vec![Deck{cards: vec![Card { suit: Suit::Clubs, value: CardValue::Two }, Card { suit: Suit::Clubs, value: CardValue::Five }, Card { suit: Suit::Clubs, value: CardValue::Eight }, Card { suit: Suit::Clubs, value: CardValue::Jack }, Card { suit: Suit::Clubs, value: CardValue::Ace }, Card { suit: Suit::Diamonds, value: CardValue::Four }, Card { suit: Suit::Diamonds, value: CardValue::Seven }, Card { suit: Suit::Diamonds, value: CardValue::Ten }, Card { suit: Suit::Diamonds, value: CardValue::King }, Card { suit: Suit::Hearts, value: CardValue::Three }, Card { suit: Suit::Hearts, value: CardValue::Six }, Card { suit: Suit::Hearts, value: CardValue::Nine }, Card { suit: Suit::Hearts, value: CardValue::Queen }, Card { suit: Suit::Spades, value: CardValue::Two }, Card { suit: Suit::Spades, value: CardValue::Five }, Card { suit: Suit::Spades, value: CardValue::Eight }, Card { suit: Suit::Spades, value: CardValue::Jack }, Card { suit: Suit::Spades, value: CardValue::Ace }] }, 
+        Deck { cards: vec![Card { suit: Suit::Clubs, value: CardValue::Three }, Card { suit: Suit::Clubs, value: CardValue::Six }, Card { suit: Suit::Clubs, value: CardValue::Nine }, Card { suit: Suit::Clubs, value: CardValue::Queen }, Card { suit: Suit::Diamonds, value: CardValue::Two }, Card { suit: Suit::Diamonds, value: CardValue::Five }, Card { suit: Suit::Diamonds, value: CardValue::Eight }, Card { suit: Suit::Diamonds, value: CardValue::Jack }, Card { suit: Suit::Diamonds, value: CardValue::Ace }, Card { suit: Suit::Hearts, value: CardValue::Four }, Card { suit: Suit::Hearts, value: CardValue::Seven }, Card{ suit: Suit::Hearts, value: CardValue::Ten }, Card { suit: Suit::Hearts, value: CardValue::King }, Card { suit: Suit::Spades, value: CardValue::Three }, Card { suit: Suit::Spades, value: CardValue::Six }, Card { suit: Suit::Spades, value: CardValue::Nine }, Card { suit: Suit::Spades, value: CardValue::Queen }] },
+        Deck { cards: vec![Card { suit: Suit::Clubs, value: CardValue::Four }, Card { suit: Suit::Clubs, value: CardValue::Seven }, Card { suit: Suit::Clubs, value: CardValue::Ten }, Card { suit: Suit::Clubs, value: CardValue::King }, Card { suit: Suit::Diamonds, value: CardValue::Three }, Card { suit: Suit::Diamonds, value: CardValue::Six }, Card { suit: Suit::Diamonds, value: CardValue::Nine }, Card { suit: Suit::Diamonds, value: CardValue::Queen }, Card { suit: Suit::Hearts, value: CardValue::Two }, Card { suit: Suit::Hearts, value: CardValue::Five }, Card { suit: Suit::Hearts, value: CardValue::Eight }, Card {suit: Suit::Hearts, value: CardValue::Jack }, Card { suit: Suit::Hearts, value: CardValue::Ace }, Card { suit: Suit::Spades, value: CardValue::Four }, Card { suit: Suit::Spades, value: CardValue::Seven }, Card {suit: Suit::Spades, value: CardValue::Ten }, Card { suit: Suit::Spades, value: CardValue::King }] }
+        ];
+
+        assert_eq!(table.players, correct_players);
+        
     }
 
+    #[test]
+    fn test_check_win() {
+        
+    }
+
+    #[test]
+    fn test_play_cards() {
+        let rng = rand::rngs::StdRng::seed_from_u64(42);
+        let input = b"\n";
+        let reader = &input[..];
+        let writer = Vec::new();
+        let mut table = Table::new_unit_test(rng, reader, writer);
+
+        table.set_player_count(3);
+        table.deal();
+
+        let cards = table.play_cards();
+        let correct_cards = vec![
+            (0, Card{suit: Suit::Spades, value: CardValue::Ace}),
+            (1, Card{suit: Suit::Spades, value: CardValue::Queen}),
+            (2, Card{suit: Suit::Spades, value: CardValue::King}),
+        ];
+        assert_eq!(cards, correct_cards);
+    }
+
+    #[test]
+    fn test_find_winners() {
+
+    }
    
 }

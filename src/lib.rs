@@ -86,8 +86,8 @@ impl fmt::Display for Suit {
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub struct Card {
-    suit: Suit,
-    value: CardValue,
+    pub suit: Suit,
+    pub value: CardValue,
 }
 
 impl fmt::Display for Card {
