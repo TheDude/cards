@@ -2,19 +2,19 @@ use std::fmt;
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub enum CardValue {
-    Ace,
-    King,
-    Queen,
-    Jack,
-    Ten,
-    Nine,
-    Eight,
-    Seven,
-    Six,
-    Five,
-    Four,
-    Three,
     Two,
+    Three,
+    Four,
+    Five,
+    Six,
+    Seven,
+    Eight,
+    Nine,
+    Ten,
+    Jack,
+    Queen,
+    King,
+    Ace,
 }
 
 impl CardValue {
@@ -60,10 +60,10 @@ impl fmt::Display for CardValue {
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub enum Suit {
-    Spades,
-    Hearts,
-    Diamonds,
     Clubs,
+    Diamonds,
+    Hearts,
+    Spades,
 }
 
 impl Suit {
