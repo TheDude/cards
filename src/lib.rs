@@ -52,7 +52,7 @@ impl fmt::Display for CardValue {
             CardValue::Four => "4",
             CardValue::Three => "3",
             CardValue::Two => "2",
-            CardValue::Ace => "A"
+            CardValue::Ace => "A",
         };
         write!(f, "{}", s)
     }
@@ -78,7 +78,7 @@ impl fmt::Display for Suit {
             Suit::Spades => "♠️",
             Suit::Hearts => "♥️",
             Suit::Diamonds => "♦️",
-            Suit::Clubs => "♣️"
+            Suit::Clubs => "♣️",
         };
         write!(f, "{}", s)
     }
@@ -116,10 +116,10 @@ impl Deck {
         }
     }
 
-    pub fn shuffle<R: rand::RngExt>(&mut self, rng: &mut R){
-        //get a random number 
+    pub fn shuffle<R: rand::RngExt>(&mut self, rng: &mut R) {
+        //get a random number
         //iterate over cards in reverse, starting at the end
-        for index in 0..self.cards.len(){
+        for index in 0..self.cards.len() {
             //pick a random index in the range [0..card]
             let random_index = rng.random_range(0..=index);
             //swap those 2 indicies
@@ -149,14 +149,11 @@ impl Deck {
     // pub fn push_top(&mut self, card: Card){
     //     self.cards.insert(0, card);
     // }
-
 }
 
-impl fmt::Display for Deck{
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result{
-        self.cards.iter().map( |card| {
-            card.fmt(f)
-        }).collect()
+impl fmt::Display for Deck {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.cards.iter().map(|card| card.fmt(f)).collect()
     }
 }
 
@@ -164,15 +161,39 @@ impl fmt::Display for Deck{
 mod tests {
 
     use super::*;
-    use rand::{SeedableRng};
+    use rand::SeedableRng;
 
     #[test]
-    fn test_deck_new(){
+    fn test_deck_new() {
         let deck = Deck::new();
-        assert_eq!(deck.cards[0], Card{suit: Suit::Spades, value: CardValue::Ace});
-        assert_eq!(deck.cards[15], Card{suit: Suit::Hearts, value: CardValue::Queen});
-        assert_eq!(deck.cards[45], Card{suit: Suit::Clubs, value: CardValue::Eight});
-        assert_eq!(deck.cards[51], Card{suit: Suit::Clubs, value: CardValue::Two});
+        assert_eq!(
+            deck.cards[0],
+            Card {
+                suit: Suit::Spades,
+                value: CardValue::Ace
+            }
+        );
+        assert_eq!(
+            deck.cards[15],
+            Card {
+                suit: Suit::Hearts,
+                value: CardValue::Queen
+            }
+        );
+        assert_eq!(
+            deck.cards[45],
+            Card {
+                suit: Suit::Clubs,
+                value: CardValue::Eight
+            }
+        );
+        assert_eq!(
+            deck.cards[51],
+            Card {
+                suit: Suit::Clubs,
+                value: CardValue::Two
+            }
+        );
 
         let deck2 = Deck::default();
         assert_eq!(deck2.cards.len(), 0)
@@ -185,7 +206,11 @@ mod tests {
         let mut deck2 = deck.clone();
         Deck::shuffle(&mut deck2, &mut rng);
         assert_eq!(deck.cards.len(), deck2.cards.len());
-        let diff = deck.cards.iter().zip(deck2.cards.iter()).any(|(card1, card2)| *card1 != *card2);
+        let diff = deck
+            .cards
+            .iter()
+            .zip(deck2.cards.iter())
+            .any(|(card1, card2)| *card1 != *card2);
         assert!(diff, "Shuffled deck is in exact same order as before!");
     }
 
@@ -196,7 +221,7 @@ mod tests {
     //         Card{value: CardValue::Ace, suit: Suit::Spades},
     //         Card{value: CardValue::King, suit: Suit::Spades},
     //         Card{value: CardValue::Queen, suit: Suit::Spades},
-    //         Card{value: CardValue::Jack, suit: Suit::Spades} 
+    //         Card{value: CardValue::Jack, suit: Suit::Spades}
     //     ];
     //     assert_eq!(deck.draw_n(4).unwrap(), drawn);
     // }
