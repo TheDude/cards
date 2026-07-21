@@ -83,19 +83,24 @@ impl <N: rand::RngExt, R: BufRead, W: Write> Table<N, R, W> {
     }
 
     fn find_winners(&mut self, battle_cards: Vec<(usize, Card)>) -> Vec<usize>{
-        //find the winning player ids
+        //find the winning card indicies
         let mut winners: Vec<usize> = Vec::new();
-        winners = battle_cards.iter().fold(winners, |mut acc, x| {
+        winners = battle_cards.iter().enumerate().fold(winners, |mut acc, x| {
+            let index = x.0;
             match acc.first(){
                 None => {
-                    acc.push(x.0);
+                    acc.push(index);
                     acc
                 },
-                Some(card) if card < &x.0 => {
+                Some(max) if battle_cards[*max].1.value < battle_cards[index].1.value => {
                     acc.clear();
-                    acc.push(x.0);
+                    acc.push(index);
                     acc
                 },
+                Some(max) if battle_cards[*max].1.value == battle_cards[index].1.value => {
+                    acc.push(index);
+                    acc
+                }
                 _ => {
                     acc
                 }
@@ -270,7 +275,48 @@ use super::*;
 
     #[test]
     fn test_find_winners() {
+        let rng = rand::rngs::StdRng::seed_from_u64(42);
+        let input = b"\n";
+        let reader = &input[..];
+        let writer = Vec::new();
+        let mut table = Table::new_unit_test(rng, reader, writer);
 
+        table.set_player_count(3);
+        table.deal();
+
+        let cards = table.play_cards();
+        let winners = table.find_winners(cards);
+
+        let correct_winners = vec![0];
+    
+        assert_eq!(winners, correct_winners);
+
+        for player in table.players.iter_mut(){
+            player.shuffle(&mut table.rng);
+        }
+        let cards = table.play_cards();
+        let winners = table.find_winners(cards);
+
+        let correct_winners = vec![2];
+        assert_eq!(winners, correct_winners);
+
+        for player in table.players.iter_mut(){
+            player.shuffle(&mut table.rng);
+        }
+        let cards = table.play_cards();
+        let winners = table.find_winners(cards);
+        assert_eq!(winners, vec![1]);
+
+        table.players[0].cards.push(Card{suit: Suit::Spades, value: CardValue::King});
+        let cards = table.play_cards();
+        assert_eq!(table.find_winners(cards), vec![0,1]);
+
+        table.players[0].cards.push(Card{suit: Suit::Clubs, value: CardValue::Ace});
+        table.players[1].cards.push(Card{suit: Suit::Hearts, value: CardValue::Three});
+        table.players[2].cards.push(Card{suit: Suit::Clubs, value: CardValue::Three});
+
+        let cards = table.play_cards();
+        assert_eq!(table.find_winners(cards), vec![0]);
     }
    
 }
